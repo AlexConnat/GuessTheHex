@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Guess the Hex - The Hex Color Game</title>
+  </head>
+
+  <style>
+
+    body {
+      font-family: 'Montserrat', 'Helvetica Neue', 'Helvetica', 'Arial Black';
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    #ColorBox {
+      margin-top: 100px;
+      width: 300px;
+      height: 300px;
+      background: red;
+      border-radius: 10px;
+    }
+    #HexBox {
+      padding-top: 50px;
+      align-content: center;
+    }
+    #ButtonBox {
+      padding-top: 50px;
+    }
+    #CheckBox {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding-top: 30px;
+      color: red;
+    }
+    #CheckColor {
+      width: 30px;
+      height: 30px;
+      margin-top: 10px;
+      border-radius: 5px;
+    }
+    input {
+      font-size: 2em;
+      text-align: center;
+      width: 200px;
+      border: none;
+      border-bottom: solid 1px royalblue;
+    }
+    input:focus {
+      outline: none;
+      border-bottom: solid 3px royalblue;
+    }
+    ::placeholder {
+      opacity: 0.3;
+    }
+    .button {
+      background: royalblue;
+      border-radius: 100px;
+      padding: 20px 60px;
+      color: #fff;
+      text-decoration: none;
+      font-size: 1.45em;
+      margin: 0 15px;
+    }
+    /* Hover state animation applied here */
+    .button:hover {
+      -webkit-animation: hover 1200ms linear 2 alternate;
+      animation: hover 1200ms linear 2 alternate;
+    }
+    /* Active state animation applied here */
+    .button:active {
+      -webkit-animation: active 1200ms ease 1 alternate;
+      animation: active 1200ms ease 1 alternate;
+      background: #5F9BE0;
+    }
+
+  </style>
+
+
+  <body>
+    <div id=ColorBox onload=setRandomColor()></div>
+    <div id=HexBox>
+      <input id=HexText placeholder=#??????></input>
+    </div>
+    <div id=ButtonBox>
+      <a href="#" class="button" onclick="checkColor()">Check</a>
+    </div>
+    <div id=CheckBox>
+      <span id=CheckMsg></span>
+      <div id=CheckColor></div>
+    </div>
+  </body>
+
+  <script>
+
+  function getRandomColor() {
+    var letters = '0123456789ABCDEF';
+    var color = '#';
+    for (var i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  }
+
+  function hexToRgb(hex) {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null;
+  }
+
+  function euclideanDistance(color1, color2) {
+    c1 = hexToRgb(color1);
+    c2 = hexToRgb(color2);
+    return Math.sqrt( Math.pow(c1.r - c2.r, 2) + Math.pow(c1.g - c2.g, 2) + Math.pow(c1.b - c2.b, 2) )
+  }
+
+  function computeScoreRGB(color1, color2) {
+    c1 = hexToRgb(color1);
+    c2 = hexToRgb(color2);
+    scoreR = (1 - Math.abs(c1.r - c2.r) / 255) * 100;
+    scoreR = Math.round(scoreR * 100) / 100;
+    scoreG = (1 - Math.abs(c1.g - c2.g) / 255) * 100;
+    scoreG = Math.round(scoreG * 100) / 100;
+    scoreB = (1 - Math.abs(c1.b - c2.b) / 255) * 100;
+    scoreB = Math.round(scoreB * 100) / 100;
+    return { r: scoreR, g: scoreG, b: scoreB };
+  }
+
+  COLOR = getRandomColor();
+  document.getElementById('ColorBox').style.backgroundColor = COLOR;
+
+  // Check Color on key "enter" pressed, or on click of the CheckButton
+  document.getElementById('HexText').addEventListener("keyup", function(event) {
+    if (event.keyCode === 13) { // Number 13 is the "Enter" key on the keyboard
+      event.preventDefault();
+      checkColor();
+    }
+  });
+
+  function checkColor() {
+    inputColor = document.getElementById('HexText').value;
+    if (inputColor.charAt(0) != '#') {
+      inputColor = '#' + inputColor;
+    }
+    // Check if input is an actual hex color
+    if (! /^#[0-9A-F]{6}$/i.test(inputColor) ) {
+      errorMsg = 'Please enter a valid hex color'
+      document.getElementById('CheckMsg').innerHTML = errorMsg;
+    }
+    // Check how far it is from the real color (euclidean distance)
+    distance = euclideanDistance(inputColor, COLOR);
+
+    score = (1 - distance / 441.6729559300637) * 100;
+    score = Math.round(score * 100) / 100;
+    scoreRGB = computeScoreRGB(inputColor, COLOR);
+
+    checkMsg = 'Your score: ' + score + '%';
+    //checkMsg += '<br>(' + scoreRGB.r + '%, ' + scoreRGB.g + '%, ' + scoreRGB.b + '%)';
+    //checkMsg += '<br>Answer: ' + COLOR;
+
+    document.getElementById('CheckMsg').innerHTML = checkMsg;
+    document.getElementById('CheckColor').style.backgroundColor = inputColor;
+  }
+
+  </script>
+
+</html>
